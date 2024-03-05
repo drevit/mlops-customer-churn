@@ -93,12 +93,12 @@ def encoder_helper(df, category_lst, response):
     
     for column in category_lst:
         column_values_list = []
-        column_groups = df.groupby(column).mean()[response]
+        column_groups = df.groupby(column)[response].mean()
 
-        for val in df['Gender']:
+        for val in df[column]:
             column_values_list.append(column_groups.loc[val])
 
-        df[column] = column_values_list
+        df[f"{column}_{response}"] = column_values_list
     
     return df
 
@@ -278,8 +278,7 @@ if __name__ == "__main__":
     df = import_data(data_path)
     print("perform_eda")
     perform_eda(df, quant_columns, eda_images_dir, figsize=(20,10))
-    #df = encoder_helper(df, cat_columns, target_col)
+    df = encoder_helper(df, cat_columns, target_col)
 
-    #data = perform_feature_engineering(df, keep_cols, target_col, test_size, random_state)
-    #X_train, X_test, y_train, y_test = data
-
+    data = perform_feature_engineering(df, keep_cols, target_col, test_size, random_state)
+    X_train, X_test, y_train, y_test = data

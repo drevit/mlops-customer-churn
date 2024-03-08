@@ -35,7 +35,11 @@ def import_data(pth):
     output:
             df: pd.DataFrame
     """
-    return pd.read_csv(pth)
+    df = pd.read_csv(pth)
+    df["Churn"] = df["Attrition_Flag"].apply(
+        lambda val: 0 if val == "Existing Customer" else 1)
+    df.drop("Attrition_Flag", axis=1, inplace=True)
+    return df
 
 
 def perform_eda(df, heatmap_columns, figs_dir, figsize=(20, 10)):
@@ -43,7 +47,8 @@ def perform_eda(df, heatmap_columns, figs_dir, figsize=(20, 10)):
     perform eda on df and save figures to images folder
     input:
             df: (pd.DataFrame) pandas dataframe that contains the data for eda
-            eda_images_dir: (str) path to the directory where images will be saved
+            heatmap_columns: (list) columns to be used by the heatmap function
+            figs_dir: (str) path to the directory where images will be saved
             figsize: (tuple) size of the plots
 
     output:
@@ -52,10 +57,6 @@ def perform_eda(df, heatmap_columns, figs_dir, figsize=(20, 10)):
 
     rcParams["figure.figsize"] = figsize
     sns.set_theme(rc={"figure.figsize": figsize})
-
-    df["Churn"] = df["Attrition_Flag"].apply(
-        lambda val: 0 if val == "Existing Customer" else 1)
-    df.drop("Attrition_Flag", axis=1, inplace=True)
 
     path = os.path.join(figs_dir, "churn_distribution.png")
     df["Churn"].hist()

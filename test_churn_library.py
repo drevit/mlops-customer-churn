@@ -174,8 +174,7 @@ def test_perform_feature_engineering(categorical_columns, keep_columns):
             "SUCCESS: Testing perform_feature_engineering output dimensions")
     except AssertionError:
         logging.info(
-            f"ERROR: Testing perform_feature_engineering: unexpected output dimension (found: {
-                len(data)}, expected: 4)")
+            "ERROR: Testing perform_feature_engineering: unexpected output dimension")
 
     try:
         for arr in data:

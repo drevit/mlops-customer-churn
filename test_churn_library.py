@@ -8,8 +8,8 @@ import os
 import logging
 # import churn_library_solution as cls
 import pytest
-from churn_library import import_data, perform_eda, encoder_helper,\
-      perform_feature_engineering, train_models
+from churn_library import import_data, perform_eda, encoder_helper, \
+    perform_feature_engineering, train_models
 
 
 logging.basicConfig(
@@ -81,84 +81,12 @@ def keep_columns():
         "Card_Category_Churn"]
 
 
-@pytest.fixture(scope="module")
-def df_path():
-    """
-    fixture for importing data
-    """
-    return os.path.join(".", "data", "bank_data.csv")
-
-
-@pytest.fixture(scope="module")
-def eda_images_dirpath():
-    """
-    fixture for checking eda images path
-    """
-    return os.path.join(".", "images", "eda")
-
-
-@pytest.fixture(scope="module")
-def rfc_model_path():
-    """
-    fixture for checking rfc_model path
-    """
-    return os.path.join(".", "models", "rfc_model.pkl")
-
-
-@pytest.fixture(scope="module")
-def lrc_model_path():
-    """
-    fixture for checking lrc_model path
-    """
-    return os.path.join(".", "models", "logistic_model.pkl")
-
-
-@pytest.fixture(scope="module")
-def roc_curve_path():
-    """
-    fixture for checking roc curve figure path
-    """
-    return os.path.join(".", "images", "results", "roc_curve_result.png")
-
-
-@pytest.fixture(scope="module")
-def rf_report_path():
-    """
-    fixture for checking rf_report figure path
-    """
-    return os.path.join(".", "images", "results", "rf_results.png")
-
-
-@pytest.fixture(scope="module")
-def lr_report_path():
-    """
-    fixture for checking lr_report figure path
-    """
-    return os.path.join(".", "images", "results", "lr_results.png")
-
-
-@pytest.fixture(scope="module")
-def feature_importance_path():
-    """
-    fixture for checking feature importance figure path
-    """
-    return os.path.join(".", "images", "results", "feature_importances.png")
-
-
-@pytest.fixture(scope="module")
-def target_column():
-    """
-    fixture for target column
-    """
-    return os.path.join("Churn")
-
-
-def test_import(df_path):
+def test_import():
     '''
     test data import - this example is completed for you to assist with the other test functions
     '''
     try:
-        df = import_data(df_path)
+        df = import_data(os.path.join(".", "data", "bank_data.csv"))
         logging.info("SUCCESS: Testing import_data csv loading")
     except FileNotFoundError as err:
         logging.error("ERROR: Testing import_eda: the file wasn't found")
@@ -174,44 +102,55 @@ def test_import(df_path):
         raise err
 
 
-def test_eda(df_path, heatmap_columns, eda_images_dirpath):
+def test_eda(heatmap_columns):
     '''
     test perform eda function
     '''
-    df = import_data(df_path)
+    df = import_data(os.path.join(".", "data", "bank_data.csv"))
 
     try:
-        perform_eda(df, heatmap_columns, eda_images_dirpath, (20, 10))
+        perform_eda(
+            df, heatmap_columns, os.path.join(
+                ".", "images", "eda"), (20, 10))
+        assert os.path.isfile(
+            os.path.join(".", "images", "eda", "churn_distribution.png"))
         assert os.path.isfile(
             os.path.join(
-                eda_images_dirpath,
-                "churn_distribution.png"))
-        assert os.path.isfile(
-            os.path.join(
-                eda_images_dirpath,
+                ".",
+                "images",
+                "eda",
                 "customer_age_distribution.png"))
         assert os.path.isfile(
             os.path.join(
-                eda_images_dirpath,
+                ".",
+                "images",
+                "eda",
                 "marital_stauts_distribution.png"))
         assert os.path.isfile(
             os.path.join(
-                eda_images_dirpath,
+                ".",
+                "images",
+                "eda",
                 "total_transaction_distribution.png"))
-        assert os.path.isfile(os.path.join(eda_images_dirpath, "heatmap.png"))
+        assert os.path.isfile(
+            os.path.join(
+                ".",
+                "images",
+                "eda",
+                "heatmap.png"))
         logging.info("SUCCESS: Testing eda images path")
     except AssertionError:
         logging.error("ERROR: Testing eda images path: file wasn't found")
 
 
-def test_encoder_helper(df_path, categorical_columns, target_column):
+def test_encoder_helper(categorical_columns):
     '''
     test encoder helper
     '''
-    df = import_data(df_path)
+    df = import_data(os.path.join(".", "data", "bank_data.csv"))
 
     try:
-        df = encoder_helper(df, categorical_columns, target_column)
+        df = encoder_helper(df, categorical_columns, "Churn")
         assert df.shape[0] > 0
         assert df.shape[1] > 0
         logging.info("SUCCESS: Testing encoder_helper dataframe's dimensions")
@@ -220,20 +159,16 @@ def test_encoder_helper(df_path, categorical_columns, target_column):
             "ERROR: Testing encoder_helper: : the file doesn't appear to have rows or columns")
 
 
-def test_perform_feature_engineering(
-        df_path,
-        categorical_columns,
-        target_column,
-        keep_columns):
+def test_perform_feature_engineering(categorical_columns, keep_columns):
     '''
     test perform_feature_engineering
     '''
-    df = import_data(df_path)
-    df = encoder_helper(df, categorical_columns, target_column)
+    df = import_data(os.path.join(".", "data", "bank_data.csv"))
+    df = encoder_helper(df, categorical_columns, "Churn")
 
     try:
         data = perform_feature_engineering(
-            df, keep_columns, target_column, 0.3)
+            df, keep_columns, "Churn", 0.3)
         assert len(data) == 4
         logging.info(
             "SUCCESS: Testing perform_feature_engineering output dimensions")
@@ -253,38 +188,50 @@ def test_perform_feature_engineering(
 
 
 def test_train_models(
-        df_path,
         categorical_columns,
-        target_column,
-        keep_columns,
-        rfc_model_path,
-        lrc_model_path,
-        roc_curve_path,
-        lr_report_path,
-        rf_report_path,
-        feature_importance_path):
+        keep_columns):
     '''
     test train_models
     '''
-    df = import_data(df_path)
-    df = encoder_helper(df, categorical_columns, target_column)
-    data = perform_feature_engineering(df, keep_columns, target_column, 0.3)
+    df = import_data(os.path.join(".", "data", "bank_data.csv"))
+    df = encoder_helper(df, categorical_columns, "Churn")
+    data = perform_feature_engineering(df, keep_columns, "Churn", 0.3)
     x_train, x_test, y_train, y_test = data
     train_models(x_train, x_test, y_train, y_test)
 
     try:
-        os.path.isfile(rfc_model_path)
-        os.path.isfile(lrc_model_path)
+        os.path.isfile(os.path.join(".", "models", "rfc_model.pkl"))
+        os.path.isfile(os.path.join(".", "models", "logistic_model.pkl"))
         logging.info("SUCCESS: Testing train_models models' pickle path")
     except AssertionError:
         logging.info(
             "ERROR: Testing train_models: models' files weren't found")
 
     try:
-        assert os.path.isfile(roc_curve_path)
-        assert os.path.isfile(lr_report_path)
-        assert os.path.isfile(rf_report_path)
-        assert os.path.isfile(feature_importance_path)
+        assert os.path.isfile(
+            os.path.join(
+                ".",
+                "images",
+                "results",
+                "roc_curve_result.png"))
+        assert os.path.isfile(
+            os.path.join(
+                ".",
+                "images",
+                "results",
+                "lr_results.png"))
+        assert os.path.isfile(
+            os.path.join(
+                ".",
+                "images",
+                "results",
+                "rf_results.png"))
+        assert os.path.isfile(
+            os.path.join(
+                ".",
+                "images",
+                "results",
+                "feature_importances.png"))
 
         logging.info("SUCCESS: Testing train_models figures path")
     except AssertionError:
